@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 
+DAYS_THRESHOLD = 30
+
+
 def BuildTable(column_names, rows):
 
     from prettytable import PrettyTable
@@ -135,8 +138,6 @@ def main():
 
     import sys, socket, getpass, smtplib
 
-    DAYS_THRESHOLD = 30
-
     if len(sys.argv) < 2:
         sys.exit("Usage: " + sys.argv[0] + " 'hostnames_file'")
     input_file = sys.argv[1]
@@ -150,7 +151,7 @@ def main():
 
     hostnames = ReadHostnamesList(input_file)
 
-    output = ""
+    notes = ""
     results = []
     for hostname in hostnames:
 
@@ -193,7 +194,7 @@ if __name__ == "__main__":
 
     from time import time
 
-    start_time: time = time()
+    start_time = time()
     main()
     print("seconds_to_execute:", round((time() - start_time), 3))
 

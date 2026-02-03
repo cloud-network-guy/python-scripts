@@ -1,0 +1,27 @@
+[project]
+name = "python-scripts"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = [
+    "aiodns",
+    "aiohttp",
+    "aioopenssl",
+    "asyncio",
+    "boto3",
+    "oauth2client",
+    "google-auth",
+    "PySocks",
+    "prettytable",
+    "gcloud-aio-auth",
+    "gcloud-aio-storage",
+    "google-cloud-compute",
+    "google-cloud-iam",
+    "google-cloud-resource-manager",
+    "google-cloud-storage",
+]
+
+[tool.setuptools]
+packages = []
+
+
+
