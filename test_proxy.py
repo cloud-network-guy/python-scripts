@@ -11,15 +11,16 @@ def make_request(fqdn: str, port: int = None, path: str = None, proxy_host: str 
     path = f"/{path}" if not path.startswith("/") else path
     proxy_port = 3128 if proxy_port else 3128
 
-    if port  == 443 or port == 8443:
-        if proxy_host:
+    use_tls = True if port == 443 or port == 8443 else False
+    if proxy_host:
+        if use_tls:
             conn = http.client.HTTPSConnection(proxy_host, port=proxy_port, timeout=TIMEOUT)
             conn.set_tunnel(host=fqdn, port=port)
         else:
-            conn = http.client.HTTPSConnection(fqdn, port=port, timeout=TIMEOUT)
-    else:
-        if proxy_host:
             conn = http.client.HTTPConnection(proxy_host, port=proxy_port, timeout=TIMEOUT)
+    else:
+        if use_tls:
+            conn = http.client.HTTPSConnection(fqdn, port=port, timeout=TIMEOUT)
         else:
             conn = http.client.HTTPConnection(fqdn, port=port, timeout=TIMEOUT)
 

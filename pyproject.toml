@@ -18,10 +18,11 @@ dependencies = [
     "google-cloud-iam",
     "google-cloud-resource-manager",
     "google-cloud-storage",
+    "pillow",
+    "pillow-heif",
+    "wheel",
 ]
 
 [tool.setuptools]
 packages = []
-
-
 
