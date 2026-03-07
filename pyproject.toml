@@ -8,6 +8,7 @@ dependencies = [
     "aioopenssl",
     "asyncio",
     "boto3",
+    "geoip2",
     "gcloud-aio-auth",
     "gcloud-aio-storage",
     "google-auth",

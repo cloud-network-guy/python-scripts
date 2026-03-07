@@ -1,9 +1,9 @@
 from os import environ, path
 
-DB_DIR = environ.get("DB_DIR", "../../db")
+MMDB_DIR = environ.get("MMDB_DIR", "../../mmdb")
 READER_FILES = {
-    'city': f"{DB_DIR}/GeoIP2-City.mmdb",
-    'isp': f"{DB_DIR}/GeoIP2-ISP.mmdb",
+    'city': f"{MMDB_DIR}/GeoIP2-City.mmdb",
+    'isp': f"{MMDB_DIR}/GeoIP2-ISP.mmdb",
 }
 
 

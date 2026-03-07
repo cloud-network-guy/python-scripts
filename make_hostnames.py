@@ -8,7 +8,7 @@ HOSTNAMES = [
 
 
 def make_hostnames (domain: str):
-    
+
     output = ""
     for i, hostname in enumerate(HOSTNAMES):
         output += f"{hostname}.{domain}"

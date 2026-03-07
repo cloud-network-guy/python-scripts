@@ -1,8 +1,11 @@
-FROM ubuntu:noble
+FROM debian:trixie
 ARG DEBIAN_FRONTEND=noninteractive
 ARG HOSTNAME="ubuntu"
 ARG PACKAGES="sudo curl wget git nano openssh-server lsb-release gnupg nfs-common"
 ARG USERNAME="admin"
+ENV MMDB="../../mmdb"
+ENV USERNAME="admin"
+ENV PORT="8000"
 WORKDIR /tmp
 RUN apt update && apt upgrade -y && apt install -y $PACKAGES && apt clean
 # Install python
@@ -21,7 +24,7 @@ COPY *.py /home/${USERNAME}/
 COPY *.yaml /home/${USERNAME}/
 # Install ClaudeCode
 RUN curl -fsSL https://claude.ai/install.sh | bash
-# Setup SSH Server
+# Setup SSH Server & copy Keys
 RUN ssh-keygen -A
 RUN mkdir /home/${USERNAME}/.ssh
 COPY id_* /home/${USERNAME}/.ssh/
@@ -29,10 +32,11 @@ CMD chmod 600 /home/${USERNAME}/.ssh/id_*
 #COPY authorized_keys /home/${USERNAME}/.ssh/
 #CMD ["pip", "list"]
 USER root
-RUN mkdir /var/run/sshd
-CMD 755 /var/run/sshd
-# Enable Password-based SSH Logins
-RUN sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
-RUN sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config
-CMD ["/usr/sbin/sshd", "-D"]
-EXPOSE 22/tcp
+#RUN mkdir /var/run/sshd
+#CMD 755 /var/run/sshd
+#RUN sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
+#RUN sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config
+#CMD ["/usr/sbin/sshd", "-D"]
+#EXPOSE 22/tcp
+ENTRYPOINT cd /home/${USERNAME} && hypercorn -b 0.0.0.0:$PORT -w 3 --access-logfile '-' app:app
+EXPOSE $PORT/tcp
