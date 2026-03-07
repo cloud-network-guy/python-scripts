@@ -10,8 +10,10 @@ from socket import create_connection, gethostname, gethostbyname, getaddrinfo, g
 from ssl import create_default_context
 from math import ceil
 from time import time, localtime, timezone, altzone, mktime, strptime
+from pathlib import Path
 
 DAYS_THRESHOLD = 12
+SMTP_HOSTNAME = 'nas.home.whamola.net'
 INPUT_FILE = "cert_hostnames.txt"
 
 
@@ -105,6 +107,8 @@ def get_targets(input_file: str) -> list:
 
     targets = []
     try:
+        pwd = Path(__file__).parent
+        input_file = pwd.joinpath(input_file)
         f = open(input_file, 'r')
     except:
         exit("Can't open file: '"+ input_file +"'")
@@ -153,7 +157,7 @@ def main():
         subject = "An SSL certificate is expiring soon!"
         message = f"From: {sender}\nTo: {recipient}\nSubject: {subject}\n{output}"
         try:
-            server = SMTP('localhost', port=25)
+            server = SMTP(SMTP_HOSTNAME, port=25)
             server.ehlo()
             server.sendmail(sender, recipient, message)
             server.quit()
