@@ -1,29 +1,29 @@
 #!/usr/bin/env python3
 
-import os
-import sys
-import time
+from os import environ
+from pathlib import Path
+from sys import platform
+from time import time
 import math
 import datetime
 import boto3
 
 DAYS = 22
-PROFILE_NAME = os.environ.get('AWS_PROFILE', "default")
-REGION_NAME = os.environ.get('AWS_REGION', "us-east-1")
-PLATFORM = sys.platform
-SRC_DIR = "/usr/local/etc/letsencrypt/live" if 'freebsd' in PLATFORM else "/etc/letsencrypt/live"
+PROFILE_NAME = environ.get('AWS_PROFILE', "default")
+REGION_NAME = environ.get('AWS_REGION', "us-east-1")
+SRC_DIR = "/usr/local/etc/letsencrypt/live" if 'freebsd' in platform else "/etc/letsencrypt/live"
+print(SRC_DIR)
 
-print(REGION_NAME)
-NOW =  math.floor(time.time())
+NOW =  math.floor(time())
 THRESHOLD = NOW + 86400 * DAYS
 
 # Create boto ACM client
-boto3.setup_default_session(profile_name=PROFILE_NAME)
+boto3.setup_default_session(profile_name=PROFILE_NAME, region_name=REGION_NAME)
 client = boto3.client('acm', region_name=REGION_NAME)
 
 # Get a list of active SSL certs at AWS
 _ = client.list_certificates(CertificateStatuses=['ISSUED','EXPIRED'])
-
+print(_)
 for cert in _['CertificateSummaryList']:
     
     # Get details about each cert, namely the timestamp it expires
@@ -37,24 +37,24 @@ for cert in _['CertificateSummaryList']:
     # Check if cert is coming up for renewal or already expired
     if expires_timestamp < THRESHOLD or expires_timestamp <= NOW:
 
-        files = []
-
-        src_dir = os.path.join(SRC_DIR, cert_domain)
-        print("Checking", src_dir)
-        if not (os.path.exists(src_dir) or os.path.isdir(src_dir)):
+        _ = Path(SRC_DIR)
+        src_path = _.joinpath(cert_domain)
+        print("Checking", src_path)
+        if not (src_path.exists() or src_path.is_dir()):
             continue
 
         # Check for new files
-        for f in ["cert.pem", "privkey.pem", "chain.pem"]:
-            file = os.path.join(src_dir, f)
-            print(file)
-            contents = open(file, 'rb').read()
-            files.append(contents)
+        source_files = {}
+        for file in ("cert", "privkey", "chain"):
+            source_file = src_path.joinpath(f'{file}.pem')
+            print(source_file)
+            source_contents = source_file.read_bytes()
+            source_files.update({file: source_contents})
 
         # Re-import the Certificate
         response = client.import_certificate(
             CertificateArn = cert['CertificateArn'],
-            Certificate = files[0],
-            PrivateKey = files[1],
-            CertificateChain = files[2]
+            Certificate = source_files['cert'],
+            PrivateKey = source_files['privkey'],
+            CertificateChain = source_files['chain'],
         )

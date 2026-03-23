@@ -3,6 +3,8 @@ from os import stat, utime
 from pillow_heif import register_heif_opener
 from PIL import Image
 
+JPEG_QUALITY = 90
+JPEG_OPTIMIZE = True
 
 def main():
 
@@ -16,7 +18,10 @@ def main():
         with Image.open(source_file) as image:
             # Create a new jpg file and save to that files
             jpg_path = Path(source_file.with_suffix(".jpg"))
-            image.save(jpg_path, "JPEG", quality=90, exif=image.info.get("exif"), optimize=True)
+            if jpg_path.exists():
+                print(jpg_path, "already exists.  skipping...")
+                continue  # don't touch existing files
+            image.save(jpg_path, "JPEG", quality=JPEG_QUALITY, exif=image.info.get("exif"), optimize=JPEG_OPTIMIZE)
 
         # Preserve the original access and modification timestamps
         heic_stat = stat(source_file)
