@@ -6,7 +6,7 @@ from shutil import copy, copystat
 from pathlib import Path
 
 PWD = Path(__file__).parent
-DST_DIR = "../../private/ssl"
+DST_DIR = "../../../private/ssl"
 FILES = { 'key': 'privkey.pem', 'crt': 'cert.pem', 'cer': 'fullchain.pem' }
 
 def main(mode = None):
@@ -27,8 +27,8 @@ def main(mode = None):
                 print(src_path, "->", dst_path)
             else:
                 print(f"Copying {src_path} -> {dst_path}")
-                copy(src_path, dst_path)
-                copystat(src_path, dst_path)
+                src_content = src_path.read_bytes()
+                dst_path.write_bytes(src_content)
 
 if __name__ == "__main__":
 

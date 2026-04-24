@@ -1,6 +1,7 @@
 
 USER_AGENT = "Python http.client"
 TIMEOUT = 5
+HTTP_PORTS = (80, 8080)
 
 def make_request(fqdn: str, port: int = None, path: str = None, proxy_host: str = None, proxy_port: int = None):
 
@@ -11,7 +12,8 @@ def make_request(fqdn: str, port: int = None, path: str = None, proxy_host: str 
     path = f"/{path}" if not path.startswith("/") else path
     proxy_port = 3128 if proxy_port else 3128
 
-    use_tls = True if port == 443 or port == 8443 else False
+    # It's 2026, let's default to TLS
+    use_tls = False if port in HTTP_PORTS else True
     if proxy_host:
         if use_tls:
             conn = http.client.HTTPSConnection(proxy_host, port=proxy_port, timeout=TIMEOUT)
@@ -44,7 +46,7 @@ if __name__ == '__main__':
     if len(argv) > 1:
         target = argv[1]
     else:
-        exit(f"Must URL to connect to. Example: {argv[0]} https://www.j5.org:443")
+        exit(f"Must URL to connect to. Example: {argv[0]} www.j5.org:443")
 
     proxies = getproxies()
     if len(argv) > 2:
