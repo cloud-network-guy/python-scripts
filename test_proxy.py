@@ -1,30 +1,32 @@
 
 USER_AGENT = "Python http.client"
 TIMEOUT = 5
-HTTP_PORTS = (80, 8080)
+PLAIN_HTTP_PORTS = (80, 8080)
+DEFAULT_HTTPS_PORT = 443
+DEFAULT_PROXY_PORT = 3128
+DEFAULT_PATH = "/"
 
 def make_request(fqdn: str, port: int = None, path: str = None, proxy_host: str = None, proxy_port: int = None):
 
-    import http.client
+    from http.client import HTTPSConnection, HTTPConnection
 
-    port = port if port else 443
-    path = path if path else "/"
+    port = port if port else DEFAULT_HTTPS_PORT
+    path = path if path else DEFAULT_PATH
     path = f"/{path}" if not path.startswith("/") else path
-    proxy_port = 3128 if proxy_port else 3128
+    proxy_port = proxy_port if proxy_port else DEFAULT_PROXY_PORT
 
-    # It's 2026, let's default to TLS
-    use_tls = False if port in HTTP_PORTS else True
-    if proxy_host:
-        if use_tls:
-            conn = http.client.HTTPSConnection(proxy_host, port=proxy_port, timeout=TIMEOUT)
-            conn.set_tunnel(host=fqdn, port=port)
+    if port in PLAIN_HTTP_PORTS:
+        if proxy_host:
+            conn = HTTPConnection(proxy_host, port=proxy_port, timeout=TIMEOUT)
         else:
-            conn = http.client.HTTPConnection(proxy_host, port=proxy_port, timeout=TIMEOUT)
+            conn = HTTPConnection(fqdn, port=port, timeout=TIMEOUT)
     else:
-        if use_tls:
-            conn = http.client.HTTPSConnection(fqdn, port=port, timeout=TIMEOUT)
+        # It's 2026, let's default to TLS
+        if proxy_host:
+            conn = HTTPSConnection(proxy_host, port=proxy_port, timeout=TIMEOUT)
+            conn.set_tunnel(host=fqdn, port=port) # RFC 7230
         else:
-            conn = http.client.HTTPConnection(fqdn, port=port, timeout=TIMEOUT)
+            conn = HTTPSConnection(fqdn, port=port, timeout=TIMEOUT)
 
     # Make actual HTTP request
     headers = {'host': fqdn, 'User-agent': USER_AGENT}
@@ -32,9 +34,12 @@ def make_request(fqdn: str, port: int = None, path: str = None, proxy_host: str 
     conn.request(method="GET", url=path, headers=headers)
     response = conn.getresponse()
     conn.close()
+
     return {
         'status': response.status,
-        'reason': response.reason
+        'reason': response.reason,
+        'server': response.headers.get('server', "unknown"),
+        'via': response.headers.get('via', "None"),
     }
 
 

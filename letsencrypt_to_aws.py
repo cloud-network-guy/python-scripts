@@ -4,20 +4,21 @@ from os import environ
 from pathlib import Path
 from sys import platform
 from time import time
-import math
-import datetime
+from math import floor
+from datetime import datetime
 import boto3
 
 DAYS = 22
 PROFILE_NAME = environ.get('AWS_PROFILE', "default")
 REGION_NAME = environ.get('AWS_REGION', "us-east-1")
 SRC_DIR = "/usr/local/etc/letsencrypt/live" if 'freebsd' in platform else "/etc/letsencrypt/live"
-print(SRC_DIR)
+#print(SRC_DIR)
 
-NOW =  math.floor(time())
+NOW =  floor(time())
 THRESHOLD = NOW + 86400 * DAYS
 
 # Create boto ACM client
+print(PROFILE_NAME, REGION_NAME, SRC_DIR, NOW, THRESHOLD)
 boto3.setup_default_session(profile_name=PROFILE_NAME, region_name=REGION_NAME)
 client = boto3.client('acm', region_name=REGION_NAME)
 
@@ -31,11 +32,15 @@ for cert in _['CertificateSummaryList']:
     print(cert_domain)
     cert_details = client.describe_certificate(CertificateArn=cert['CertificateArn'])
     expires_date = cert_details['Certificate']['NotAfter']
-    expires_timestamp = datetime.datetime.timestamp(expires_date)
+    expires_timestamp = datetime.timestamp(expires_date)
     #print(expires_date, expires_timestamp)
 
+    if expires_timestamp <= NOW:
+        print("certificate expired:", cert_details)
+        continue
+
     # Check if cert is coming up for renewal or already expired
-    if expires_timestamp < THRESHOLD or expires_timestamp <= NOW:
+    if expires_timestamp < THRESHOLD:
 
         _ = Path(SRC_DIR)
         src_path = _.joinpath(cert_domain)

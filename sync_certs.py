@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 
 from sys import argv, platform
-from os.path import getmtime
-from shutil import copy, copystat
 from pathlib import Path
 
 PWD = Path(__file__).parent
-DST_DIR = "../../../private/ssl"
-FILES = { 'key': 'privkey.pem', 'crt': 'cert.pem', 'cer': 'fullchain.pem' }
+DST_DIR = "../../private/ssl"
+FILES = {
+    'key': 'privkey.pem',
+    'crt': 'cert.pem',
+    'cer': 'fullchain.pem',
+}
 
 def main(mode = None):
 
@@ -21,20 +23,17 @@ def main(mode = None):
             _ = site.replace(".", "_")
             _ = f"{_}.{file_extension}"
             dst_path = dst_dir.joinpath(_)
-            if getmtime(src_path) >= getmtime(dst_path):
-                continue
-            if mode == "dry":
-                print(src_path, "->", dst_path)
-            else:
-                print(f"Copying {src_path} -> {dst_path}")
-                src_content = src_path.read_bytes()
-                dst_path.write_bytes(src_content)
+            if dst_path.exists():
+                if src_path.stat().st_mtime <= dst_path.stat().st_mtime:
+                    continue  # Skip cases where the destination file is newer
+            print(f"Copying {src_path} -> {dst_path}")
+            if mode != "dry":
+                _ = src_path.read_bytes()
+                dst_path.write_bytes(_)
 
 if __name__ == "__main__":
 
-    if len(argv) > 1 and argv[1] == "-d":
-        main(mode = "dry")
-    else:
-        main()
+    mode = "dry" if len(argv) > 1 and argv[1] == "-d" else None
+    main(mode)
     quit()
 
