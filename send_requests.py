@@ -1,9 +1,12 @@
-import aiohttp
 import sys
 import platform
+import aiohttp
+import traceback
+import urllib.request
+import os
+import asyncio
 
-URL = "https://learningcompass.learnflex.net/users/index.asp"
-EXPECTED_RESPONSE = 401
+EXPECTED_RESPONSE = 200
 NUM_REQUESTS = 32
 VERIFY_SSL = False
 PYTHON_VERSION = sys.version.split(' ')[0]
@@ -28,32 +31,40 @@ async def make_request(session: aiohttp.ClientSession, url: str, proxy: str = No
         raise RuntimeWarning(e)
 
 
-async def main() -> list:
-
-    from urllib.request import getproxies
-    from os import environ
-    from asyncio import gather
+async def make_requests(url: str, num_requests: int = 10) -> list:
 
     protocol = "http" if URL.startswith("http://") else "https"
-    if proxies := getproxies():
+    if proxies := urllib.request.getproxies():
         proxy = proxies.get(protocol)
     else:
         for e in ["PROXY", "proxy"]:
-            if proxy := environ.get(e):
+            if proxy := os.environ.get(e):
                 break
     if proxy:
         print(f"{protocol} Proxy Detected:", proxy)
     session = aiohttp.ClientSession(raise_for_status=False)
-    tasks = [make_request(session, URL, proxy) for i in range(0, NUM_REQUESTS)]
-    _ = await gather(*tasks)
+    tasks = [make_request(session, url, proxy) for i in range(0, num_requests)]
+    _ = await asyncio.gather(*tasks)
+    await session.close()
     return _
+
+def main():
+
+    argv = sys.argv
+    if len(argv) > 1:
+        url = argv[1]
+        num_requests = int(argv[2]) if len(argv) > 2 else NUM_REQUESTS
+    else:
+        exit(f"Must supply URL to connect to")
+
+    _ = asyncio.run(make_requests(url, num_requests))
+    if all(_):
+        print(f"All {num_requests} requests were successful.")
+    else:
+        print(f"Some requests were not successful.")
+        sys.exit(traceback.format_exc())
+
 
 if __name__ == '__main__':
 
-    from asyncio import run
-
-    _ = run(main())
-    if all(_):
-        print(f"All {NUM_REQUESTS} requests were successful.")
-    else:
-        print(f"Some requests were not successful.")
+    main()

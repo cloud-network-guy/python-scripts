@@ -17,8 +17,10 @@ CSV_FILE = "results.csv"
 
 def detect_proxy(protocol: str = None) -> dict:
 
-    if not (proxy := environ.get('proxy')):
-        proxy = environ.get('PROXY')
+    proxy = None
+    for p in ["proxy", "PROXY"]:
+        if proxy := environ.get(p):
+            break
     if not proxy:
         for p in ["http", "https"]:
             if not (proxy := environ.get(f"{p}_proxy")):

@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 
 USER_AGENT = "Python http.client"
 TIMEOUT = 5
@@ -5,6 +6,7 @@ PLAIN_HTTP_PORTS = (80, 8080)
 DEFAULT_HTTPS_PORT = 443
 DEFAULT_PROXY_PORT = 3128
 DEFAULT_PATH = "/"
+EXAMPLE_TARGET = "www.j5.org:443"
 
 def make_request(fqdn: str, port: int = None, path: str = None, proxy_host: str = None, proxy_port: int = None):
 
@@ -51,7 +53,7 @@ if __name__ == '__main__':
     if len(argv) > 1:
         target = argv[1]
     else:
-        exit(f"Must URL to connect to. Example: {argv[0]} www.j5.org:443")
+        exit(f"Must URL to connect to. Example: {argv[0]} {EXAMPLE_TARGET}")
 
     proxies = getproxies()
     if len(argv) > 2:
