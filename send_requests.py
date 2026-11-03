@@ -33,7 +33,7 @@ async def make_request(session: aiohttp.ClientSession, url: str, proxy: str = No
 
 async def make_requests(url: str, num_requests: int = 10) -> list:
 
-    protocol = "http" if URL.startswith("http://") else "https"
+    protocol = "http" if url.startswith("http://") else "https"
     if proxies := urllib.request.getproxies():
         proxy = proxies.get(protocol)
     else:
